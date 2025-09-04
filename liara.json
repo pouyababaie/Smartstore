@@ -1,8 +1,9 @@
 {
-"app":"awesome-euler-sap1cm6s7"
-"port":3000
-"build":{
-"location":"iran"
+  "app": "awesome-euler-sap1cm6s7",
+  "port": 3000,
+  "build": {
+    "location": "iran"
+  },
+  "disks": []
 }
-"disks":[]
-}
+
