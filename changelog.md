@@ -12,24 +12,31 @@
   - Product lists.
   - "All manufacturers" page.
   - PhotoSwipe
+- Summernote: Allow query string in mp4, webm and ogg urls.
 
 ### New Features
 
 - #1370 Add a payment provider for **easyCredit purchase on account**.
 - #1381 Add a compare price to attribute combinations.
+- #1386 Customer roles: Extend the permission tree so that nodes with descendants show whether descendant permissions have been granted.
 - New Rule Builder rules:
   - #1372 Cart rule for the total cart weight.
   - Cart rule to check that all products in the cart are from the specified categories.
 - #1357 Pricing: Add a setting that takes tiered prices of products into account, that are assigned by an attribute of type "linked product".
 - #690 Apple Sign-In support
 - FileManager: Enabled language dependent tabs
-- #1341 GMC: Enable the selection of product images to be exported.
+- **GMC**
+  - #1341 Enable the selection of product images to be exported.
+  - Export more shipping data (handling time, length, width and height of a product).
 - EmailReminder: Added Google Reviews to the review reminder.
 
 ### Improvements
 
 * Bumped all `jquery.validate` libraries
 * Asset Bundling: Replaced `DouglasCrockford.JsMin` with `NUglify`.
+* Summernote:
+  * Activated file browser (MediaManager)
+  * Responsive video embed
 * Theming: `.art-drop` should adopt `$art-active-border-color`
 - #1327 Product rules/MegaSearch: Consider start and end dates of a discount when applying the "HasDiscount" rule.
 - Allow new attribute options to be added when assigning specification attributes to a product.
@@ -37,6 +44,7 @@
 - etracker: Updated module to use latest script & added event submission for product view, list view and orders. 
 - Added option for queued email grid to filter for subject.
 - #1122 AI: Replace the Betalgo library with the official OpenAI .NET library.
+- #1393 Missing bubble help hints in the backend address editor template.
 
 
 ### Bugfixes
@@ -58,6 +66,8 @@
 	- Set selected payment method on customer level was missing when using *Link* cart button. 
 	- Restored setting of correct payment status.
 - AmazonPay: Do not apply the customer email address for guests.
+- Payment methods with rules are missing on the customer edit page when changing the preferred payment method.
+- Verify balanced parentheses in data grid search filter expressions, preventing runaway memory usage from malformed search terms.
 
 
 ## Smartstore 6.2.0

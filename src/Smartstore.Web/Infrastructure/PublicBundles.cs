@@ -96,14 +96,16 @@ namespace Smartstore.Web.Infrastructure
                 js + "smartstore.numberinput.js",
                 js + "smartstore.throbber.js",
                 js + "smartstore.thumbzoomer.js",
-                js + "smartstore.keynav.js",
                 js + "smartstore.articlelist.js",
                 js + "smartstore.megamenu.js",
                 js + "smartstore.offcanvas.js",
                 js + "smartstore.parallax.js",
                 js + "smartstore.media.js",
                 js + "smartstore.cmp.js",
-                js + "smartstore.accessibility.js",
+                //js + "smartstore.accessibility.js",
+                // TODO: (mh) Don't forget to rename the file to smartstore.accessibility.js when all parts are finished.
+                js + "smartstore.accessibility.blueprint.js",
+                js + "smartstore.accessibility.plugins.js",
                 js + "smartstore.accessibility.focustrap.js",
                 // Shop
                 js + "public.common.js",

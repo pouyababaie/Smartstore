@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Smartstore.Core.AI.Metadata;
 using Smartstore.Core.AI.Prompting;
 using Smartstore.Core.Content.Media;
 using Smartstore.Engine.Modularity;
@@ -18,25 +19,9 @@ namespace Smartstore.Core.AI
         bool IsActive();
 
         /// <summary>
-        /// Gets a value indicating whether the provider supports the given feature.
+        /// Gets the metadata associated with the current AI provider, mapped from metadata.json.
         /// </summary>
-        /// <param name="feature">The AI provider feature.</param>
-        /// <returns>True if the provider supports the feature; otherwise, false.</returns>
-        bool Supports(AIProviderFeatures feature);
-
-        /// <summary>
-        /// Gets the names of the preferred AI models for the given topic.
-        /// </summary>
-        /// <param name="topic">The AI chat topic.</param>
-        /// <returns>An array of preferred AI model names.</returns>
-        string[]? GetPreferredModelNames(AIChatTopic topic);
-
-        /// <summary>
-        /// Gets the default AI model names.
-        /// To be used when GetPreferredModelNames returns null.
-        /// </summary>
-        /// <returns>An array of default AI model names.</returns>
-        string[] GetDefaultModelNames();
+        AIMetadata Metadata { get; }
 
         /// <summary>
         /// Starts or continues an AI conversation.
