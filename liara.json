@@ -1,9 +1,9 @@
 {
-  "app": "awesome-euler-sap1cm6s7",
-  "port": 3000,
+  "app": "smart-store",
+  "port": 8080,
+  "team-id": "68b9e607bd90234c585ce434",
   "build": {
-    "location": "iran"
+    "location": "germany"
   },
   "disks": []
 }
-
