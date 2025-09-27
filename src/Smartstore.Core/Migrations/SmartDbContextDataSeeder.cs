@@ -70,7 +70,8 @@ namespace Smartstore.Core.Data.Migrations
                 "Media.Manufacturer.ImageAlternateTextFormat",
                 "Media.Product.ImageAlternateTextFormat",
                 "Common.DecreaseValue",
-                "Common.IncreaseValue");
+                "Common.IncreaseValue",
+                "Admin.Orders.Address.EditAddress");
 
             builder.AddOrUpdate("ShoppingCart.DiscountCouponCode.Removed", "The discount code has been removed", "Der Rabattcode wurde entfernt");
             builder.AddOrUpdate("ShoppingCart.GiftCardCouponCode.Removed", "The gift card code has been removed", "Der Geschenkgutschein wurde entfernt");
@@ -99,6 +100,9 @@ namespace Smartstore.Core.Data.Migrations
             builder.AddOrUpdate("Admin.Rules.FilterDescriptor.AllProductsFromManufacturerInCart",
                 "All products from manufacturer in cart",
                 "Alle Produkte von Hersteller im Warenkorb");
+            builder.AddOrUpdate("Admin.Rules.FilterDescriptor.ProductInCategoryTreeCartRule",
+                "Product from category or subcategories in cart",
+                "Produkt aus Kategorie oder Unterkategorien im Warenkorb");
 
             builder.AddOrUpdate("LinkBuilder.LinkTarget", 
                 "Define the target attribute for the link.", 
@@ -150,8 +154,10 @@ namespace Smartstore.Core.Data.Migrations
                 "Retournierbare Artikel aus Auftrag Nr. {0}");
 
             builder.AddOrUpdate("ReturnRequests.Products.RequestAlreadyExists",
-                "A return request already exists for this item.",
-                "Zu diesem Artikel existiert bereits ein Rücksendewunsch.");
+                "There are already return requests for this item.",
+                "Zu diesem Artikel gibt es bereits Rücksendewünsche.");
+
+            builder.AddOrUpdate("Common.EnlargeView", "Enlarge view", "Ansicht vergrößern");
         }
     }
 }

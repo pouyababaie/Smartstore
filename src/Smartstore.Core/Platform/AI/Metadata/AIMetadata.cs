@@ -35,7 +35,7 @@ namespace Smartstore.Core.AI.Metadata
         /// <summary>
         /// List of LLM models available under this provider.
         /// </summary>
-        public IReadOnlyList<AIModelEntry> Models { get; set; } = [];
+        public AIModelCollection Models { get; set; } = default!;
 
         #endregion
 
@@ -67,44 +67,42 @@ namespace Smartstore.Core.AI.Metadata
         #region Query models
 
         /// <summary>
-        /// Gets the preferred model for the given topic.
-        /// </summary>
-        public AIModelEntry? GetPreferredModel(AIChatTopic topic)
-            => GetPreferredModel(topic == AIChatTopic.Image ? AIOutputType.Image : AIOutputType.Text);
-
-        /// <summary>
-        /// Gets the preferred model for the given output type.
-        /// </summary>
-        public AIModelEntry? GetPreferredModel(AIOutputType outputType)
-        {
-            return Models.FirstOrDefault(x => x.Preferred && x.Type == outputType && !x.Deprecated)
-                ?? Models.FirstOrDefault(x => x.Type == outputType && !x.Deprecated);
-        }
-
-        /// <summary>
         /// Gets all text models.
         /// </summary>
-        public IEnumerable<AIModelEntry> GetTextModels()
-            => GetModels(AIOutputType.Text);
+        /// <param name="preferred">If true, returns only preferred models. If false, returns all other models. If null, returns all undeprecated models.</param>
+        public IEnumerable<AIModelEntry> GetTextModels(bool? preferred = null)
+            => GetModels(AIOutputType.Text, preferred);
 
         /// <summary>
         /// Gets all image models.
         /// </summary>
-        public IEnumerable<AIModelEntry> GetImageModels()
-            => GetModels(AIOutputType.Image);
+        /// <param name="preferred">If true, returns only preferred models. If false, returns all other models. If null, returns all undeprecated models.</param>
+        public IEnumerable<AIModelEntry> GetImageModels(bool? preferred = null)
+            => GetModels(AIOutputType.Image, preferred);
 
         /// <summary>
         /// Gets all models for the given topic.
         /// </summary>
-        public IEnumerable<AIModelEntry> GetModels(AIChatTopic topic)
-            => GetModels(topic == AIChatTopic.Image ? AIOutputType.Image : AIOutputType.Text);
+        /// <param name="preferred">If true, returns only preferred models. If false, returns all other models. If null, returns all undeprecated models.</param>
+        public IEnumerable<AIModelEntry> GetModels(AIChatTopic topic, bool? preferred = null)
+            => GetModels(topic == AIChatTopic.Image ? AIOutputType.Image : AIOutputType.Text, preferred);
 
         /// <summary>
         /// Gets all models for the given output type.
         /// </summary>
-        public IEnumerable<AIModelEntry> GetModels(AIOutputType type)
+        /// <param name="preferred">If true, returns only preferred models. If false, returns all other models. If null, returns all undeprecated models.</param>
+        public IEnumerable<AIModelEntry> GetModels(AIOutputType type, bool? preferred = null)
         {
-            return Models.Where(x => x.Type == type && !x.Deprecated).OrderByDescending(x => x.Preferred);
+            return Models.Where(x => x.Type == type && !x.Deprecated && (preferred == null || x.Preferred == preferred.Value)).OrderByDescending(x => x.Preferred);
+        }
+
+        /// <summary>
+        /// Gets all models that support vision (image analysis).
+        /// </summary>
+        /// <param name="preferred">If true, returns only preferred models. If false, returns all other models. If null, returns all undeprecated models.</param>
+        public IEnumerable<AIModelEntry> GetVisionModels(bool? preferred = null)
+        {
+            return Models.Where(x => x.Vision && !x.Deprecated && (preferred == null || x.Preferred == preferred.Value)).OrderByDescending(x => x.Preferred);
         }
 
         /// <summary>
@@ -113,14 +111,119 @@ namespace Smartstore.Core.AI.Metadata
         /// <param name="mapDeprecated">If true, tries to resolve deprecated models to their alias.</param>
         public AIModelEntry? GetModelById(string modelId, bool mapDeprecated = true)
         {
-            var model = Models.FirstOrDefault(x => x.Id == modelId);
-            if (model != null && model.Deprecated && model.Alias.HasValue() && mapDeprecated)
+            if (Models.TryFindModel(modelId, out var modelEntry) && modelEntry.Deprecated && modelEntry.Alias.HasValue() && mapDeprecated)
             {
-                // Try to resolve alias
-                model = Models.FirstOrDefault(x => x.Id == model.Alias);
+                // Try to resolve by alias
+                modelEntry = Models.FindModel(modelEntry.Alias);
             }
 
-            return model;
+            return modelEntry;
+        }
+
+        #endregion
+
+        #region Edit & validate models
+
+        public string ValidateModelName(string modelId, AIOutputType type)
+        {
+            if (!Models.TryFindModel(modelId, out var modelEntry) || modelEntry.Type != type)
+            {
+                return GetModels(type, preferred: true).FirstOrDefault()!.Id;
+            }
+
+            if (modelEntry != null && modelEntry.Deprecated && modelEntry.Alias.HasValue())
+            {
+                // Always map deprecated models when validating
+                var aliasEntry = Models.FindModel(modelEntry.Alias);
+                if (aliasEntry != null && aliasEntry.Type == type && !aliasEntry.Deprecated)
+                {
+                    modelId = aliasEntry.Id;
+                }
+            }
+
+            return modelId;
+        }
+
+        public string ValidateVisionModelName(string modelId)
+        {
+            if (!Models.TryFindModel(modelId, out var modelEntry) || modelEntry.Type != AIOutputType.Text || !modelEntry.Vision)
+            {
+                return GetVisionModels(preferred: true).FirstOrDefault()!.Id;
+            }
+
+            if (modelEntry != null && modelEntry.Deprecated && modelEntry.Alias.HasValue())
+            {
+                // Always map deprecated models when validating
+                var aliasEntry = Models.FindModel(modelEntry.Alias);
+                if (aliasEntry != null && aliasEntry.Type == AIOutputType.Text && modelEntry.Vision && !aliasEntry.Deprecated)
+                {
+                    modelId = aliasEntry.Id;
+                }
+            }
+
+            return modelId;
+        }
+
+        public AIModelCollection MergeTextModels(string[] preferredModelNames)
+        {
+            return MergeModels(AIOutputType.Text, preferredModelNames);
+        }
+
+        public AIModelCollection MergeImageModels(string[] preferredModelNames)
+        {
+            return MergeModels(AIOutputType.Image, preferredModelNames);
+        }
+
+        public AIModelCollection MergeModels(AIOutputType outputType, string[] preferredModelNames)
+        {
+            if (preferredModelNames.IsNullOrEmpty())
+            {
+                return [.. GetModels(outputType)];
+            }
+            
+            var mergedModels = new AIModelCollection();
+
+            foreach (var modelName in preferredModelNames.Distinct())
+            {
+                var modelEntry = GetModelById(modelName);
+                if (modelEntry != null && modelEntry.Type == outputType)
+                {
+                    if (modelEntry.Preferred)
+                    {
+                        mergedModels.Add(modelEntry);
+                    }
+                    else
+                    {
+                        // Clone and mark as preferred
+                        var cloned = modelEntry.Clone();
+                        cloned.Preferred = true;
+                        mergedModels.Add(cloned);
+                    }
+                }
+                else
+                {
+                    mergedModels.Add(new AIModelEntry
+                    {
+                        Id = modelName,
+                        Type = outputType,
+                        Preferred = true,
+                        Level = AIModelPerformanceLevel.Balanced,
+                        IsCustom = true
+                    });
+                }
+            }
+
+            var otherModels = GetModels(outputType, preferred: false);
+
+            foreach (var modelEntry in otherModels)
+            {
+                if (!mergedModels.Contains(modelEntry))
+                {
+                    mergedModels.Add(modelEntry);
+                }
+            }
+
+            return mergedModels;
         }
 
         #endregion

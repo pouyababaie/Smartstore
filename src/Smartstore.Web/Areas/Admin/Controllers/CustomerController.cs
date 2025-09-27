@@ -220,10 +220,9 @@ namespace Smartstore.Admin.Controllers
                     Addresses = await customer.Addresses.MapAsync(customer, _shoppingCartSettings.QuickCheckoutEnabled)
                 };
 
-                model.SelectedCustomerRoleIds = customer.CustomerRoleMappings
+                model.SelectedCustomerRoleIds = [.. customer.CustomerRoleMappings
                     .Where(x => !x.IsSystemMapping)
-                    .Select(x => x.CustomerRoleId)
-                    .ToArray();
+                    .Select(x => x.CustomerRoleId)];
 
                 var affiliate = await _db.Affiliates
                     .Include(x => x.Address)
@@ -432,7 +431,7 @@ namespace Smartstore.Admin.Controllers
 
         private async Task PrepareAddressModelAsync(CustomerAddressModel model, Customer customer, Address address)
         {
-            await address.MapAsync(model.Address, customer, _shoppingCartSettings.QuickCheckoutEnabled);
+            await address.MapAsync(model.Address, customer, _shoppingCartSettings.QuickCheckoutEnabled, true);
 
             model.CustomerId = customer.Id;
             model.Username = customer.Username;
@@ -1137,7 +1136,9 @@ namespace Smartstore.Admin.Controllers
         [Permission(Permissions.Customer.ReadAddress)]
         public async Task<IActionResult> AddressCreate(int customerId)
         {
-            var customer = await _db.Customers.FindByIdAsync(customerId, false);
+            var customer = await _db.Customers
+                .IncludeCustomerRoles()
+                .FindByIdAsync(customerId, false);
             if (customer == null)
             {
                 return NotFound();
@@ -1158,16 +1159,23 @@ namespace Smartstore.Admin.Controllers
         [Permission(Permissions.Customer.CreateAddress)]
         public async Task<IActionResult> AddressCreate(CustomerAddressModel model, bool continueEditing)
         {
-            var customer = await _db.Customers.FindByIdAsync(model.CustomerId);
+            var customer = await _db.Customers
+                .IncludeCustomerRoles()
+                .FindByIdAsync(model.CustomerId);
             if (customer == null)
             {
                 return NotFound();
             }
 
+            if (customer.IsGuest() && !model.Address.Email.IsEmail())
+            {
+                ModelState.AddModelError($"{nameof(model.Address)}.{nameof(model.Address.Email)}", T("Admin.Customers.Customers.Fields.Email.Required"));
+            }
+
             if (ModelState.IsValid)
             {
                 var address = new Address();
-                await model.Address.MapAsync(address);
+                await model.Address.MapAsync(address, customer);
 
                 customer.Addresses.Add(address);
                 await _db.SaveChangesAsync();
@@ -1179,9 +1187,8 @@ namespace Smartstore.Admin.Controllers
                     : RedirectToAction(nameof(Edit), new { id = customer.Id });
             }
 
-            model.CustomerId = customer.Id;
-
             await PrepareAddressModelAsync(model, customer, new Address());
+            model.CustomerId = customer.Id;
 
             return View(model);
         }
@@ -1189,7 +1196,9 @@ namespace Smartstore.Admin.Controllers
         [Permission(Permissions.Customer.ReadAddress)]
         public async Task<IActionResult> AddressEdit(int customerId, int addressId)
         {
-            var customer = await _db.Customers.FindByIdAsync(customerId, false);
+            var customer = await _db.Customers
+                .IncludeCustomerRoles()
+                .FindByIdAsync(customerId, false);
             if (customer == null)
             {
                 return NotFound();
@@ -1212,7 +1221,9 @@ namespace Smartstore.Admin.Controllers
         [Permission(Permissions.Customer.EditAddress)]
         public async Task<IActionResult> AddressEdit(CustomerAddressModel model, bool continueEditing)
         {
-            var customer = await _db.Customers.FindByIdAsync(model.CustomerId, false);
+            var customer = await _db.Customers
+                .IncludeCustomerRoles()
+                .FindByIdAsync(model.CustomerId, false);
             if (customer == null)
             {
                 return NotFound();
@@ -1222,6 +1233,11 @@ namespace Smartstore.Admin.Controllers
             if (address == null)
             {
                 return NotFound();
+            }
+
+            if (customer.IsGuest() && !model.Address.Email.IsEmail())
+            {
+                ModelState.AddModelError($"{nameof(model.Address)}.{nameof(model.Address.Email)}", T("Admin.Customers.Customers.Fields.Email.Required"));
             }
 
             if (ModelState.IsValid)

@@ -17,11 +17,13 @@
 ### New Features
 
 - #1370 Add a payment provider for **easyCredit purchase on account**.
+- #934 Add cart rules property to Page Builder stories to dynamically toggle their visibility.
 - #1381 Add a compare price to attribute combinations.
 - #1386 Customer roles: Extend the permission tree so that nodes with descendants show whether descendant permissions have been granted.
 - New Rule Builder rules:
   - #1372 Cart rule for the total cart weight.
-  - Cart rule to check that all products in the cart are from the specified categories.
+  - Cart rule that checks whether a product from a category or one of its subcategories is in the shopping cart.
+  - Cart rule to check that all products in the shopping cart are from the specified categories.
 - #1357 Pricing: Add a setting that takes tiered prices of products into account, that are assigned by an attribute of type "linked product".
 - #690 Apple Sign-In support
 - FileManager: Enabled language dependent tabs
@@ -38,6 +40,7 @@
   * Activated file browser (MediaManager)
   * Responsive video embed
 * Theming: `.art-drop` should adopt `$art-active-border-color`
+- #1016 Don't ask registered customers for email when entering billing or shipping address.
 - #1327 Product rules/MegaSearch: Consider start and end dates of a discount when applying the "HasDiscount" rule.
 - Allow new attribute options to be added when assigning specification attributes to a product.
 - EasyCredit: Do not hide the installment calculator if EasyCredit is not offered at checkout due to cart rules.
@@ -45,6 +48,10 @@
 - Added option for queued email grid to filter for subject.
 - #1122 AI: Replace the Betalgo library with the official OpenAI .NET library.
 - #1393 Missing bubble help hints in the backend address editor template.
+- Return Requests:
+  - #1196 Avoid duplicate return requests for a product.
+  - The quantity to return reflects the number of products that have already been returned.
+  - Display information about products that have already been returned, including their current status.
 
 
 ### Bugfixes
@@ -59,7 +66,9 @@
   - The background image should not overlap the menu item content.
   - The link count in a single column often exceeds the configured setting.
 - After applying a discount code or moving a product to the wish list, deactivated shopping cart products were not displayed.
-- #1367 PageBuilder: Do not hide the setting that displays the manufacturer's name in slider product lists.
+- **PageBuilder**
+  - #1367 Do not hide the setting that displays the manufacturer's name in slider product lists.
+  - Video in a video block was not rendering in Chrome.
 - Fixed missing log entry and notification for a payment exception.
 - **Stripe** 
 	- Orders were created after the 3D Secure check, even though the payment was declined.
