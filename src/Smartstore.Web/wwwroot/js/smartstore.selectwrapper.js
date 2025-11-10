@@ -44,9 +44,10 @@
 
     $.fn.select2.amd.define('select2/data/lazyAdapter', [
         'select2/data/array',
-        'select2/utils'
+        'select2/utils',
+        'select2/data/tags'
     ],
-        function (ArrayData, Utils) {
+        function (ArrayData, Utils, Tags) {
 
             function LazyAdapter($element, options) {
                 this._isInitialized = false;
@@ -135,7 +136,8 @@
                 this._isInitialized = true;
             };
 
-            return LazyAdapter;
+            // INFO: This enables addding tags when using lazy-loading.
+            return Utils.Decorate(LazyAdapter, Tags);
         }
     );
 
@@ -268,7 +270,7 @@
 
             function attr(name, value) {
                 if (value && value.length > 0) {
-                    return ' ' + name + '="' + $('<div/>').text(value).html() + '"';
+                    return ' ' + name + '="' + $('<div/>').text(value.trim()).html() + '"';
                 }
                 return '';
             }
@@ -283,13 +285,16 @@
                         preHtml = '',
                         postHtml = '',
                         classes = item.cssClass || option.data('item-class') || '',
+                        styles = item.cssStyle || option.data('item-style') || '',
                         hint = item.hint || option.attr('data-hint'),
+                        hintClass = item.hintClass || option.attr('data-hint-class') || 'text-muted',
                         description = item.description || option.attr('data-description'),
                         icon = option.data('icon'),
                         truncateText = options.maxTextLength > 0 && text.length > options.maxTextLength,
                         appendHint = !isResult && hint && hint.length > 0;
 
                     const itemTitle = item.title || option.data('title') || '';
+                    const optionClasses = ['select2-option'];
 
                     if (!isResult && sel.prop('multiple')) {
                         // Should not be applied. Looks ugly for selected options.
@@ -297,7 +302,7 @@
                     }
 
                     if (classes.length > 0) {
-                        classes = ' ' + classes;
+                        optionClasses.push(classes);
                     }
 
                     if (truncateText || appendHint || itemTitle.length > 0) {
@@ -318,49 +323,83 @@
                         if (!_.isEmpty(item.id) && !_.isEmpty(item.url)) {
                             if (item.id === '-1') {
                                 // Item is a link to open add-entity page.
-                                classes += ' select2-item-link prevent-selection';
+                                optionClasses.push('select2-item-link prevent-selection');
                             }
                             else {
                                 // Add small item button to open detail page.
-                                preHtml += '<span class="select2-item-btn">';
-                                preHtml += '<a href="' + item.url.replace('__id__', item.id) + '" class="btn btn-clear-dark btn-no-border btn-sm btn-icon rounded-circle prevent-selection"' + attr('title', item.urlTitle) + '>';
-                                preHtml += '<i class="fa fa-ellipsis fa-fw prevent-selection"></i></a>';
-                                preHtml += '</span>';
+                                preHtml += `<span class="select2-item-btn">
+                                    <a href="${item.url.replace('__id__', item.id)}" class="btn btn-clear-dark btn-no-border btn-sm btn-icon rounded-circle prevent-selection"${attr('title', item.urlTitle)}>
+                                    <i class="fa fa-ellipsis fa-fw prevent-selection"></i></a>
+                                </span>`;
                             }
                         }
 
                         if (!_.isEmpty(description)) {
-                            postHtml += '<span class="select2-item-description muted">' + description + '</span>'
+                            postHtml += `<span class="select2-item-description text-muted">${description}</span>`;
                         }
+                    }           
+
+                    if (!isResult && hint) {
+                        optionClasses.push('w-100');
                     }
 
-                    if (imageUrl) {
-                        const img = `<img src="${imageUrl}" class="choice-item-img" alt="${text}" />`;
-                        return $(preHtml + '<span class="select2-option choice-item' + classes + '"' + attr('title', title) + '>' + img + text + '</span>' + postHtml);
-                    }
-                    else if (color) {
-                        return $(preHtml + '<span class="select2-option choice-item' + classes + '"' + attr('title', title) + '><span class="choice-item-color" style="background-color: ' + color + '"></span>' + text + '</span>' + postHtml);
-                    }
-                    else if (hint && isResult) {
-                        return $(preHtml + '<span class="select2-option' + classes + '"><span' + attr('title', title) + '>' + text + '</span><span class="option-hint muted float-right">' + hint + '</span></span>' + postHtml);
+                    let html = [];
+                    let textClass = isResult ? null : 'text-truncate';
+                    let textHtml = `<span${attr('class', textClass)}>${text}</span>`;
+
+                    // Root opening option SPAN
+                    html.push(`<span class="${optionClasses.join(' ')}"${attr('title', title)}${attr('style', styles)}>`);
+
+                    if (color || imageUrl) {
+                        // Opening .choice-item SPAN
+                        html.push('<span class="choice-item');
+                        if (textClass) html.push(' ' + textClass);
+                        html.push('">');
+
+                        // Image...
+                        if (imageUrl) {
+                            html.push(`<img src="${imageUrl}" class="choice-item-img" alt="${text}" />`);
+                        }
+                        // ... or Color
+                        else if (color) {
+                            html.push(`<span class="choice-item-color" style="background-color: ${color}"></span>`);
+                        }
+
+                        // Text
+                        html.push(textHtml);
+
+                        // Closing .choice-item SPAN
+                        html.push('</span>');
                     }
                     else if (icon) {
-                        let html = ['<span class="select2-option' + classes + '"' + attr('title', title) + '>'];
+                        // Icon
+                        preHtml = '';
                         let icons = _.isArray(icon) ? icon : [icon];
                         let len = icons.length;
                         for (i = 0; i < len; i++) {
                             let iconClass = icons[i] + " fa-fw mr-2 fs-h6";
-                            html.push('<i class="' + iconClass + '" style="font-size: 16px;"></i>');
+                            html.push(`<i class="${iconClass}" style="font-size: 16px;"></i>`);
                         }
 
-                        html.push(text);
-                        html.push('</span>');
-
-                        return $(html.join('') + postHtml);
+                        // Text
+                        html.push(textHtml);
                     }
                     else {
-                        return $(preHtml + '<span class="select2-option' + classes + '"' + attr('title', title) + '>' + text + '</span>' + postHtml);
+                        // Text
+                        html.push(textHtml);
                     }
+
+                    if (hint) {
+                        // Hint/Badge
+                        html.push(`<span class="option-hint ml-auto">
+                            <span class="${hintClass}">${hint}</span>
+                        </span>`);
+                    }
+
+                    // Root closing option SPAN
+                    html.push('</span>');
+
+                    return $(preHtml + html.join('') + postHtml);
                 }
                 catch (e) {
                     console.log(e);
@@ -372,10 +411,10 @@
             var opts = {
                 allowClear: !!placeholder, // assuming that a placeholder indicates nullability
                 placeholder: placeholder,
-                templateResult: function (item) {
+                templateResult: (item) => {
                     return renderSelectItem(item, true);
                 },
-                templateSelection: function (item) {
+                templateSelection: (item) => {
                     return renderSelectItem(item, false);
                 },
                 closeOnSelect: !sel.prop('multiple'), //|| sel.data("tags"),
@@ -443,7 +482,7 @@
                     initLoad(sel, opts.lazy.url);
                 }
 
-                // url specified: load data remotely (lazily on first open)...               
+                // URL specified: load data remotely (lazily on first open)...
                 opts.dataAdapter = $.fn.select2.amd.require('select2/data/lazyAdapter');
             }
             else if (sel.data('remote-url')) {

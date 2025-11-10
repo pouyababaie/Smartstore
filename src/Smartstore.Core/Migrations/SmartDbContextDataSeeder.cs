@@ -1,6 +1,4 @@
-using Org.BouncyCastle.Utilities;
 using Smartstore.Data.Migrations;
-using static Smartstore.Core.Security.Permissions;
 
 namespace Smartstore.Core.Data.Migrations
 {
@@ -103,6 +101,9 @@ namespace Smartstore.Core.Data.Migrations
             builder.AddOrUpdate("Admin.Rules.FilterDescriptor.ProductInCategoryTreeCartRule",
                 "Product from category or subcategories in cart",
                 "Produkt aus Kategorie oder Unterkategorien im Warenkorb");
+            builder.AddOrUpdate("Admin.Rules.FilterDescriptor.SubscribedToNewsletter",
+                "Subscribed to newsletter",
+                "Newsletter abonniert");
 
             builder.AddOrUpdate("LinkBuilder.LinkTarget", 
                 "Define the target attribute for the link.", 
@@ -158,6 +159,91 @@ namespace Smartstore.Core.Data.Migrations
                 "Zu diesem Artikel gibt es bereits Rücksendewünsche.");
 
             builder.AddOrUpdate("Common.EnlargeView", "Enlarge view", "Ansicht vergrößern");
+
+            builder.AddOrUpdate("Admin.Catalog.Categories.Products.AddNew", "Assign products", "Produkte zuordnen");
+            builder.AddOrUpdate("Admin.Catalog.Categories.ProductsHaveBeenAssignedToCategory",
+                "{0} of {1} products have been assigned to the category.",
+                "{0} von {1} Produkten wurden der Warengruppe zugeordnet.");
+
+            builder.AddOrUpdate("Enums.PostIntroVisibility.Hidden", "Don't show", "Nicht anzeigen");
+            builder.AddOrUpdate("Enums.PostIntroVisibility.TwoLines", "Two lines maximum", "Maximal zweizeilig");
+            builder.AddOrUpdate("Enums.PostIntroVisibility.ThreeLines", "Three lines maximum", "Maximal dreizeilig");
+            builder.AddOrUpdate("Enums.PostIntroVisibility.FullText", "Show all", "Komplett anzeigen");
+
+            builder.AddOrUpdate("Enums.PostListColumns.Two", "Two columns", "2 Spalten");
+            builder.AddOrUpdate("Enums.PostListColumns.Three", "Three columns", "3 Spalten");
+
+            builder.Delete(
+                "Admin.ContentManagement.Blog.BlogPosts.Fields",
+                "Admin.Configuration.Settings.Blog.PostsPageSize",
+                "Admin.Configuration.Settings.Blog.PostsPageSize.Hint",
+                "Admin.ContentManagement.Blog.Heading.Display",
+                "Admin.ContentManagement.Blog.Heading.Publish",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Picture",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Picture.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.PreviewDisplayType",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.PreviewDisplayType.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.PreviewPicture",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.PreviewPicture.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.SectionBg",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.SectionBg.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.DisplayTagsInPreview",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.DisplayTagsInPreview.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Title",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Title.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Intro",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Intro.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Body",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Body.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Tags",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Tags.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.AllowComments",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.AllowComments.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.StartDate",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.StartDate.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.EndDate",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.EndDate.Hint",
+                "Admin.ContentManagement.Blog.BlogPosts.Fields.Comments");
+
+            builder.AddOrUpdate("Admin.Configuration.Settings.PostsPageSize", "Posts per page", "Beiträge pro Seite");
+
+            // Collection Groups
+            builder.AddOrUpdate("Permissions.DisplayName.CollectionGroup", "Display groups", "Anzeigegruppen");
+            builder.AddOrUpdate("Admin.Configuration.CollectionGroups", "Display groups", "Anzeigegruppen");
+            builder.AddOrUpdate("Admin.Configuration.CollectionGroups.Add", "Add display group", "Anzeigegruppe hinzufügen");
+
+            builder.AddOrUpdate("Admin.Configuration.CollectionGroups.Info",
+                "Display groups can be used to organize lists, such as lists of specification attributes, and present them more clearly.",
+                "Mit Hilfe von Anzeigegruppen können Listen, wie etwa eine Liste von Spezifikationsattributen, gruppiert und somit übersichtlicher dargestellt werden.");
+
+            builder.AddOrUpdate("Admin.Catalog.Attributes.SpecificationAttributes.Fields.CollectionGroup",
+                "Display Group",
+                "Anzeigegruppe",
+                "Specifies the name of a display group (optional). This causes the attributes to be displayed in groups in the frontend.",
+                "Legt den Namen einer Anzeigegruppe fest (optional). Dadurch werden die Attribute im Frontend gruppiert angezeigt.");
+
+            builder.AddOrUpdate("Admin.Configuration.CollectionGroup.Name",
+                "Name",
+                "Name",
+                "Specifies the name of the display group.",
+                "Legt den Namen der Anzeigegruppe fest.");
+
+            builder.AddOrUpdate("Admin.Configuration.CollectionGroup.EntityName",
+                "Object",
+                "Objekt",
+                "The name of the object assigned to the display group.",
+                "Der Name des Objekts, das der Anzeigegruppe zugeordnet ist.");
+
+            builder.AddOrUpdate("Admin.Configuration.CollectionGroup.NumberOfAssignments",
+                "Assignments",
+                "Zuordnungen",
+                "The number of objects assigned to the display group.",
+                "Die Anzahl der Objekte, die der Anzeigegruppe zugeordnet sind.");
+
+            builder.AddOrUpdate("Common.DontShowDialogAgain", "Do not show this dialog again", "Diesen Dialog nicht mehr anzeigen");
+
+            builder.AddOrUpdate("Admin.Common.Configured", "Configured", "Konfiguriert");
+            builder.AddOrUpdate("Admin.Common.NotConfigured", "Not configured", "Nicht konfiguriert");
         }
     }
 }

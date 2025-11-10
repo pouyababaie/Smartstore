@@ -2,6 +2,10 @@
 
 ## Smartstore 6.2.1
 
+### Breaking Changes
+
+- (DEV) Added `IEventMessage` marker interface and enforced it across the pub/sub pipeline to standardize and validate event contracts.
+
 ### WCAG (Web Content Accessibility Guidelines)
 
 - Added **Skip list** button for all product, category, tag, blog and news listings.
@@ -12,18 +16,32 @@
   - Product lists.
   - "All manufacturers" page.
   - PhotoSwipe
+  - PageBuilder story blocks.
 - Summernote: Allow query string in mp4, webm and ogg urls.
 
 ### New Features
 
+- **AI**
+  - Added **Anthropic Claude** AI provider.
+  - Edit images in the Media Manager using a text prompt and selected images.
+  - File-based provider metadata used to store and organize information about LLM models.
+  - **Gemini**: Support image generation using `gemini-2.5-flash-image`.
+- **CAPTCHA**
+  - Modular CAPTCHA architecture with a pluggable provider interface.
+  - Replaced hard-wired reCAPTCHA logic with a provider model.
+  - **CaptchaFox** integration (commercial module)
+  - **Friendly Captcha** integration (commercial module).
+- #112 Visually group specification attributes on product detail page.
 - #1370 Add a payment provider for **easyCredit purchase on account**.
-- #934 Add cart rules property to Page Builder stories to dynamically toggle their visibility.
 - #1381 Add a compare price to attribute combinations.
 - #1386 Customer roles: Extend the permission tree so that nodes with descendants show whether descendant permissions have been granted.
-- New Rule Builder rules:
+- #934 Add cart rules property to PageBuilder stories to dynamically toggle their visibility.
+- #1264 Batch-assign products to categories.
+- New **Rule Builder** rules:
   - #1372 Cart rule for the total cart weight.
   - Cart rule that checks whether a product from a category or one of its subcategories is in the shopping cart.
   - Cart rule to check that all products in the shopping cart are from the specified categories.
+  - #1425 Cart rule that is fulfilled when the customer is subscribed to the newsletter.
 - #1357 Pricing: Add a setting that takes tiered prices of products into account, that are assigned by an attribute of type "linked product".
 - #690 Apple Sign-In support
 - FileManager: Enabled language dependent tabs
@@ -31,14 +49,22 @@
   - #1341 Enable the selection of product images to be exported.
   - Export more shipping data (handling time, length, width and height of a product).
 - EmailReminder: Added Google Reviews to the review reminder.
+- #1411 **Pixlr**: The user should decide on a session basis whether to open the express or full editor.
 
 ### Improvements
 
 * Bumped all `jquery.validate` libraries
 * Asset Bundling: Replaced `DouglasCrockford.JsMin` with `NUglify`.
-* Summernote:
+* **Summernote**
   * Activated file browser (MediaManager)
   * Responsive video embed
+* **Blog**
+  * New global display options: Grid layout, 2/3 column mode, intro length restriction, aspect ratio setting for grid view.
+  * Mobile optimization: Pictures will now always be displayed above text on mobile devices.
+  * Better control of preview image display by setting the aspect ratio.
+  * Better control of detail image display by setting the *Maximum height of the picture*
+  * New setting for the *Navigation End Date*
+  * #1410 Blog posts configured for a single language will no longer return a 404 error when accessed with an unavailable language selection.  
 * Theming: `.art-drop` should adopt `$art-active-border-color`
 - #1016 Don't ask registered customers for email when entering billing or shipping address.
 - #1327 Product rules/MegaSearch: Consider start and end dates of a discount when applying the "HasDiscount" rule.
@@ -48,23 +74,29 @@
 - Added option for queued email grid to filter for subject.
 - #1122 AI: Replace the Betalgo library with the official OpenAI .NET library.
 - #1393 Missing bubble help hints in the backend address editor template.
+- Public export files have been moved to a new tenant folder for data exchange.
 - Return Requests:
   - #1196 Avoid duplicate return requests for a product.
   - The quantity to return reflects the number of products that have already been returned.
   - Display information about products that have already been returned, including their current status.
-
+- Web API: Allow guest customers to be created.
+- Convert JSON strings to HTML for notifications.
+- Trailing slash URL rule: Don't apply rule to static file requests (e.g. `robots.txt`).
+- #1156 The last items added to the basket must be instantly visible in offcanvas cart.
+- #208 Linkbuilder: Added possibility to define a link target.
 
 ### Bugfixes
 
 - ChatGPT: Fixed image creation errors "Invalid value".
 - Attribute combination image could not be selected on product edit page.
-- PostFinance: Fixed the issue where the amount paid sometimes differs from the order total.
 - #1361 Add a migration to consolidate duplicate `ActivityLogType` entries.
 - Fixed unnecessary single navigation dot in slick slider.
 - EntityPicker did not remove unselected items from preselection in append mode.
+- MegaSearch: Take customer roles and store restrictions into account when selecting the top entities.
 - **MegaMenu** 
   - The background image should not overlap the menu item content.
   - The link count in a single column often exceeds the configured setting.
+  - Fixed duplicate key error in `IX_MegaMenu_EntityId` index.
 - After applying a discount code or moving a product to the wish list, deactivated shopping cart products were not displayed.
 - **PageBuilder**
   - #1367 Do not hide the setting that displays the manufacturer's name in slider product lists.
@@ -74,9 +106,15 @@
 	- Orders were created after the 3D Secure check, even though the payment was declined.
 	- Set selected payment method on customer level was missing when using *Link* cart button. 
 	- Restored setting of correct payment status.
+- **PostFinance**
+  - Fixed an issue where the amount paid sometimes differs from the order total.
+  - #1423 Avoid "The provided security token is invalid" error due to security token expiration.
 - AmazonPay: Do not apply the customer email address for guests.
 - Payment methods with rules are missing on the customer edit page when changing the preferred payment method.
 - Verify balanced parentheses in data grid search filter expressions, preventing runaway memory usage from malformed search terms.
+- Do not display the default date value when adding reward points via backend grid.
+- Avoid HTTP error 500, which can be caused by an attribute alias that is too long.
+- When filtering products without category assignment, deleted categories must not be included.
 
 
 ## Smartstore 6.2.0
