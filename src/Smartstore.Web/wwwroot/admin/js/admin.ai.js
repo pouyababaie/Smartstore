@@ -26,6 +26,25 @@
             openDialog(tool, params, true);
         });
 
+        $(document).on('click', '.ai-edit-image', (e) => {
+            e.preventDefault();
+
+            const el = $(e.target).closest('.ai-edit-image');
+            if (el.length === 0) {
+                return;
+            }
+
+            const sourceFileIds = _.map(window.mediaApp.selectedFiles.filter(f => f.type === 'image'), (f) => {
+                return f.id;
+            });
+
+            const params = {
+                sourceFileIds
+            };
+
+            openDialog(el, params, false);
+        });
+
         // Text creation
         $(document).on('click', '.ai-text-composer', function (e) {
             e.preventDefault();
@@ -178,10 +197,19 @@
     }
 
     function getDialogUrl(baseUrl, params) {
-        let queryString = _.map(params, (value, key) => {
-            return encodeURIComponent(key) + "=" + encodeURIComponent(value);
-        }).join("&");
+        const qs = [];
 
-        return baseUrl + (baseUrl.includes('?') ? '&' : '?') + queryString;
+        $.each(params, function (key, value) {
+            if (Array.isArray(value)) {
+                value.forEach(v => {
+                    qs.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
+                });
+            }
+            else {
+                qs.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+            }
+        });
+
+        return baseUrl + (baseUrl.includes('?') ? '&' : '?') + qs.join('&');
     }
 })(jQuery, this, document);

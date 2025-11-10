@@ -807,8 +807,7 @@ namespace Smartstore.Web.Controllers
 
             var model = new WishlistEmailAFriendModel
             {
-                YourEmailAddress = customer.Email,
-                DisplayCaptcha = _captchaSettings.CanDisplayCaptcha && _captchaSettings.ShowOnEmailWishlistToFriendPage
+                YourEmailAddress = customer.Email
             };
 
             return View(model);
@@ -816,9 +815,9 @@ namespace Smartstore.Web.Controllers
 
         [HttpPost, ActionName("EmailWishlist")]
         [FormValueRequired("send-email")]
-        [ValidateCaptcha(CaptchaSettingName = nameof(CaptchaSettings.ShowOnEmailWishlistToFriendPage))]
+        [ValidateCaptcha(CaptchaSettings.Targets.ShareWishlist)]
         [GdprConsent]
-        public async Task<IActionResult> EmailWishlistSend(WishlistEmailAFriendModel model, string captchaError)
+        public async Task<IActionResult> EmailWishlistSend(WishlistEmailAFriendModel model)
         {
             if (!_shoppingCartSettings.EmailWishlistEnabled || !await Services.Permissions.AuthorizeAsync(Permissions.Cart.AccessWishlist))
             {
@@ -832,11 +831,6 @@ namespace Smartstore.Web.Controllers
                 return RedirectToRoute("Homepage");
             }
 
-            if (_captchaSettings.ShowOnEmailWishlistToFriendPage && captchaError.HasValue())
-            {
-                ModelState.AddModelError(string.Empty, captchaError);
-            }
-
             // Check whether the current customer is guest and is allowed to email wishlist.
             if (customer.IsGuest() && !_shoppingCartSettings.AllowAnonymousUsersToEmailWishlist)
             {
@@ -847,7 +841,6 @@ namespace Smartstore.Web.Controllers
             {
                 // If we got this far, something failed, redisplay form.
                 ModelState.AddModelError(string.Empty, T("Common.Error.Sendmail"));
-                model.DisplayCaptcha = _captchaSettings.CanDisplayCaptcha && _captchaSettings.ShowOnEmailWishlistToFriendPage;
 
                 return View(model);
             }

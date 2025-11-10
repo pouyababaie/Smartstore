@@ -12,6 +12,7 @@ using Smartstore.Core.Security;
 using Smartstore.Core.Seo;
 using Smartstore.Core.Stores;
 using Smartstore.Data.Caching;
+using Smartstore.Engine.Modularity;
 using Smartstore.Web.Modelling.Settings;
 using Smartstore.Web.Models.DataGrid;
 using Smartstore.Web.Rendering;
@@ -21,15 +22,24 @@ namespace Smartstore.Admin.Controllers
     public partial class SettingController : AdminController
     {
         private readonly SmartDbContext _db;
+        private readonly IProviderManager _providerManager;
+        private readonly Lazy<ModuleManager> _moduleManager;
+        private readonly ICaptchaManager _captchaManager;
         private readonly ILocalizedEntityService _localizedEntityService;
         private readonly Lazy<IMediaTracker> _mediaTracker;
 
         public SettingController(
             SmartDbContext db,
+            IProviderManager providerManager,
+            Lazy<ModuleManager> moduleManager,
+            ICaptchaManager captchaManager,
             ILocalizedEntityService localizedEntityService,
             Lazy<IMediaTracker> mediaTracker)
         {
             _db = db;
+            _providerManager = providerManager;
+            _moduleManager = moduleManager;
+            _captchaManager = captchaManager;
             _localizedEntityService = localizedEntityService;
             _mediaTracker = mediaTracker;
         }
@@ -117,7 +127,7 @@ namespace Smartstore.Admin.Controllers
 
             #endregion
 
-            await PrepareGeneralCommonConfigurationModelAsync(emailAccountSettings);
+            await PrepareGeneralCommonConfigurationModelAsync(model);
 
             return View(model);
         }
@@ -234,7 +244,7 @@ namespace Smartstore.Admin.Controllers
             return Content(result);
         }
 
-        private async Task PrepareGeneralCommonConfigurationModelAsync(EmailAccountSettings emailAccountSettings)
+        private async Task PrepareGeneralCommonConfigurationModelAsync(GeneralCommonSettingsModel model)
         {
             ViewBag.AvailableTimeZones = Services.DateTimeHelper.GetSystemTimeZones()
                 .ToSelectListItems(Services.DateTimeHelper.DefaultStoreTimeZone.Id);
@@ -246,7 +256,7 @@ namespace Smartstore.Admin.Controllers
                 .ToListAsync();
 
             ViewBag.EmailAccounts = emailAccounts
-                .Select(x => new SelectListItem { Text = x.FriendlyName, Value = x.Id.ToString(), Selected = x.Id == emailAccountSettings.DefaultEmailAccountId })
+                .Select(x => new SelectListItem { Text = x.FriendlyName, Value = x.Id.ToString(), Selected = x.Id == model.EmailAccountSettings.DefaultEmailAccountId })
                 .ToList();
 
             ViewBag.Salutations = new List<SelectListItem>
@@ -277,6 +287,37 @@ namespace Smartstore.Admin.Controllers
                 new() { Text = "noindex, follow", Value = "noindex, follow" },
                 new() { Text = "noindex, nofollow", Value = "noindex, nofollow" }
             };
+            
+            model.CaptchaSettings.AvailableProviders = _captchaManager.ListProviders()
+                .Select(x => new GeneralCommonSettingsModel.CaptchaProviderModel
+                {
+                    SystemName = x.Metadata.SystemName,
+                    FriendlyName = x.Metadata.FriendlyName,
+                    IsConfigured = x.Value.IsConfigured,
+                    ConfigureUrl = x.Metadata.IsConfigurable
+                        ? Url.Action(((IConfigurable)x.Value).GetConfigurationRoute())
+                        : null,
+                    IconUrl = x.Metadata.ModuleDescriptor != null
+                        ? _moduleManager.Value.GetIconUrl(x.Metadata.ModuleDescriptor, x.Metadata.SystemName)
+                        // Is "Captcha.GoogleRecaptcha" built-in provider
+                        : "https://www.gstatic.com/images/icons/material/product/2x/recaptcha_16dp.png"
+                })
+                .ToList();
+
+            var selectedTargets = model.CaptchaSettings.ShowOn ?? [];
+            var captchaTargetOptions = CaptchaSettings.Targets.GetDisplayResourceKeys()
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Key,
+                    Text = T(x.Value).Value
+                })
+                .ToList();
+
+            ViewBag.CaptchaShowOnOptions = new MultiSelectList(
+                captchaTargetOptions, 
+                nameof(SelectListItem.Value), 
+                nameof(SelectListItem.Text), 
+                selectedTargets);
 
             SelectListItem CreateItem(string resourceKey)
             {
