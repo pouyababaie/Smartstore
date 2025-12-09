@@ -60,7 +60,6 @@
                 ? (link.EntityId.HasValue ? link.EntityId.Value.ToStringInvariant() : expression.Target.EmptyNull())
                 : string.Empty;
 
-            @* TODO: (mg) select2 width must not exceed the remaining space (it does when the label is too wide). Find a way to fix it. *@
             <div class="link-control col" attr-class='(expression.Schema != schema, "hide")' data-type="@schema">
                 @if (info.Widget != null)
                 {
@@ -152,8 +151,7 @@
                     </div>
                 </div>
 
-                @* TODO: (mg) Focus the text input on dropdown shown *@
-                <div sm-if="!hideQueryString" class="btn-group">
+                <div sm-if="!hideQueryString" class="btn-group dropdown-container dropdown-focus">
                     <button type="button"
                             class="btn btn-secondary btn-icon btn-query-string dropdown-toggle@(size.HasValue() ? " btn-" + size : "")"
                             attr-class='(expression.Schema == "url", "hide")'

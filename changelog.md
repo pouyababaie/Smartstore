@@ -1,6 +1,17 @@
 # Release Notes
 
-## Smartstore 6.2.1
+## Smartstore 6.4.0
+
+### New Features
+
+### Improvements
+
+### Bugfixes
+
+- PostFinance: Fixed issue with TWINT payments regarding environment selection strategy.
+
+
+## Smartstore 6.3.0
 
 ### Breaking Changes
 
@@ -22,17 +33,25 @@
 ### New Features
 
 - **AI**
-  - Added **Anthropic Claude** AI provider.
   - Edit images in the Media Manager using a text prompt and selected images.
   - File-based provider metadata used to store and organize information about LLM models.
-  - **Gemini**: Support image generation using `gemini-2.5-flash-image`.
+  - Added **Anthropic Claude** AI provider.
+  - Added **Ollama** AI provider.
+  - **ChatGPT:**
+    - Support text and image generation using `GPT 5.1`
+  - **Gemini**: 
+    - Support text generation using `Gemini 3.0 Pro`
+    - Support image generation and editing using `Nano Banana Pro` (gemini-3-pro-image-preview).
+    - Support image generation and editing using `Nano Banana` (gemini-2.5-flash-image).
+- **Payment**
+  - PayPal: Added support for **Apple Pay**.
+  - #1370 Add a payment provider for **easyCredit purchase on account**.
 - **CAPTCHA**
   - Modular CAPTCHA architecture with a pluggable provider interface.
   - Replaced hard-wired reCAPTCHA logic with a provider model.
   - **CaptchaFox** integration (commercial module)
   - **Friendly Captcha** integration (commercial module).
 - #112 Visually group specification attributes on product detail page.
-- #1370 Add a payment provider for **easyCredit purchase on account**.
 - #1381 Add a compare price to attribute combinations.
 - #1386 Customer roles: Extend the permission tree so that nodes with descendants show whether descendant permissions have been granted.
 - #934 Add cart rules property to PageBuilder stories to dynamically toggle their visibility.
@@ -43,7 +62,8 @@
   - Cart rule to check that all products in the shopping cart are from the specified categories.
   - #1425 Cart rule that is fulfilled when the customer is subscribed to the newsletter.
 - #1357 Pricing: Add a setting that takes tiered prices of products into account, that are assigned by an attribute of type "linked product".
-- #690 Apple Sign-In support
+- #690 **Apple Sign-In** support
+- Added support for extensionless static files in `wwwroot/.well-known` directory
 - FileManager: Enabled language dependent tabs
 - **GMC**
   - #1341 Enable the selection of product images to be exported.
@@ -56,6 +76,7 @@
 * Bumped all `jquery.validate` libraries
 * Asset Bundling: Replaced `DouglasCrockford.JsMin` with `NUglify`.
 * **Summernote**
+  * Horizontal editor resizer
   * Activated file browser (MediaManager)
   * Responsive video embed
 * **Blog**
@@ -84,9 +105,13 @@
 - Trailing slash URL rule: Don't apply rule to static file requests (e.g. `robots.txt`).
 - #1156 The last items added to the basket must be instantly visible in offcanvas cart.
 - #208 Linkbuilder: Added possibility to define a link target.
+- #1404 FileManager must not render tab content via AJAX, as search engines must be able to read the content in its entirety.
+- PostFinance: Migrated to Wallee REST API v2.
+- Support of multiple discounts with the same coupon code.
 
 ### Bugfixes
 
+- #1433 The shopping cart is not migrated when a new customer account is created using external authentication.
 - ChatGPT: Fixed image creation errors "Invalid value".
 - Attribute combination image could not be selected on product edit page.
 - #1361 Add a migration to consolidate duplicate `ActivityLogType` entries.
@@ -106,15 +131,27 @@
 	- Orders were created after the 3D Secure check, even though the payment was declined.
 	- Set selected payment method on customer level was missing when using *Link* cart button. 
 	- Restored setting of correct payment status.
+	- Better handling of web hook messages. 
 - **PostFinance**
   - Fixed an issue where the amount paid sometimes differs from the order total.
   - #1423 Avoid "The provided security token is invalid" error due to security token expiration.
+  - Occasionally, orders were not automatically marked as "paid".
+- **Wallet**
+  - Fixed formatting of currency amounts in message template.
+  - Save the order ID when editing a wallet entry in the wallet grid on the customer edit page.
+  -	Clicking on the "wallet" link in the notification message produced a 404 error.
+  - #1432 Wallet: Use service methods for Web API REST endpoints.
 - AmazonPay: Do not apply the customer email address for guests.
 - Payment methods with rules are missing on the customer edit page when changing the preferred payment method.
 - Verify balanced parentheses in data grid search filter expressions, preventing runaway memory usage from malformed search terms.
 - Do not display the default date value when adding reward points via backend grid.
 - Avoid HTTP error 500, which can be caused by an attribute alias that is too long.
 - When filtering products without category assignment, deleted categories must not be included.
+- AI
+	- Fixed streaming problem if the original HTML contains comments.
+	- Fixed streaming problem with HTML entities (e.g. &amp;)
+- Link builder: The editor displayed an URL with an attached link target.
+- #1444 SQLite throws "'JULIANDAY' was constructed with 1 arguments, but the nullability was defined for 2 arguments"
 
 
 ## Smartstore 6.2.0

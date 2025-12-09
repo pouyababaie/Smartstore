@@ -2,6 +2,7 @@
 
 using System.ComponentModel;
 using Newtonsoft.Json;
+using Smartstore.Imaging;
 
 namespace Smartstore.Core.AI.Metadata
 {
@@ -22,6 +23,19 @@ namespace Smartstore.Core.AI.Metadata
         Fast,
         Balanced,
         DeepReasoning
+    }
+
+    /// <summary>
+    /// Represents the tools available for AI response generation, allowing for a combination of multiple tools.
+    /// </summary>
+    [Flags]
+    public enum AIResponseTool
+    {
+        None = 0,
+        WebSearch = 1 << 0,
+        ImageGeneration = 1 << 1,
+        CodeAnalysis = 1 << 2,
+        FileSearch = 1 << 3
     }
 
     /// <summary>
@@ -74,19 +88,56 @@ namespace Smartstore.Core.AI.Metadata
         /// </summary>
         [DefaultValue(AIModelPerformanceLevel.Balanced)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public AIModelPerformanceLevel Level { get; set; }
+        public AIModelPerformanceLevel Level { get; set; } = AIModelPerformanceLevel.Balanced;
+
+        /// <summary>
+        /// Gets or sets the tools supported by this model.
+        /// </summary>
+        [JsonConverter(typeof(AIResponseToolConverter))]
+        public AIResponseTool Tools { get; set; }
 
         /// <summary>
         /// Indicates whether the model supports streaming responses.
         /// </summary>
         [DefaultValue(true)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool Stream { get; set; }
+        public bool Stream { get; set; } = true;
+
+        /// <summary>
+        /// Gets the output capabilities of the AI image generation process.
+        /// </summary>
+        [JsonProperty("output")]
+        public AIImageOutput? ImageOutputCapabilities { get; set; }
+
+        /// <summary>
+        /// Retrieves the list of supported aspect ratios for image output.
+        /// </summary>
+        public string[] GetSupportedAspectRatios()
+            => ImageOutputCapabilities?.AspectRatios ?? AIImageOutput.Default.AspectRatios!;
+
+        /// <summary>
+        /// Retrieves the list of supported resolutions for image output.
+        /// </summary>
+        public string[] GetSupportedImageResolutions()
+            => ImageOutputCapabilities?.Resolutions ?? AIImageOutput.Default.Resolutions!;
+
+        /// <summary>
+        /// Retrieves the list of supported formats for image output.
+        /// </summary>
+        public string[] GetSupportedImageFormats()
+            => ImageOutputCapabilities?.Formats ?? AIImageOutput.Default.Formats!;
 
         /// <summary>
         /// User-defined custom model (not provided by metadata.json).
         /// </summary>
         public bool IsCustom { get; set; }
+
+        /// <summary>
+        /// Determines whether the specified tool is supported.
+        /// </summary>
+        /// <param name="tool">The tool to check for support.</param>
+        public bool SupportsTool(AIResponseTool tool)
+            => Tools.HasFlag(tool);
 
         /// <inheritdoc/>
         public AIModelEntry Clone()

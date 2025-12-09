@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Smartstore.Imaging;
+
 namespace Smartstore.Core.AI
 {
     /// <summary>
@@ -10,11 +12,12 @@ namespace Smartstore.Core.AI
         /// <summary>
         /// The identifier(s) of the source files used to generate an AI image.
         /// </summary>
-        public required int[] SourceFileIds { get; set; }
+        public required int[] SourceFileIds { get; init; }
 
-        /// <summary>
-        /// The image format of the generated AI image.
-        /// </summary>
-        public AIImageFormat ImageFormat { get; set; }
+        public ImageOrientation Orientation { get; init; }
+
+        public ImageAspectRatio? AspectRatio { get; init; }
+        public AIImageResolution? Resolution { get; init; }
+        public AIImageOutputFormat? OutputFormat { get; init; }
     }
 }
